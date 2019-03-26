@@ -16,12 +16,15 @@ spec:
     tier: frontend
 ---
 # Application to deploy
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pizza-bot
 spec:
   replicas: 2 # tells deployment to run 2 pods matching the template
+  selector:
+    matchLabels:
+      app: pizza-bot
   template: # create pods using pod definition in this template
     metadata:
       labels:
@@ -30,7 +33,7 @@ spec:
     spec:
       containers:
       - name: pizza-bot
-        image: scottdangelo/conversation-slots-intro:latest
+        image: randyhaven/conversation-slots-intro:latest
         resources:
           requests:
             cpu: 100m
@@ -44,5 +47,5 @@ spec:
           - name: service_watson_conversation
             valueFrom:
               secretKeyRef:
-                name: binding-conversation-service-watson-pizzeria
+                name: binding-wa-pizza-slots-hack
                 key: binding
