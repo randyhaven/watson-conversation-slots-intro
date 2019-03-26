@@ -1,5 +1,14 @@
 # Running watson-conversation-slots-intro in a Container on IBM Cloud with Kubernetes
 
+UPDATE FOR IAM
+==============
+Edit the watson-pizzaria-pod.txt file.
+Change:
+spec.containers.image value
+to:
+randyhaven/conversation-slots-intro:latest
+==============
+
 This directory allows you to deploy the `watson-conversation-slots-intro` application into a container running on IBM Cloud, using Kubernetes.
 
 The commands below use environment variables in order to define the specific details of the deployment. Either run the following to export the ENV variables, or substitute your names in the commands or exports:
@@ -10,6 +19,14 @@ $ export CONFIG_MAP=watson-pizzeria-config
 $ export POD_NAME=watson-pizzeria-pod.yml
 $ export KUBE_SERVICE=pizza-bot
 $ export CONTAINER_ENV_VARIABLE=service_watson_conversation
+
+Windows:
+set CLUSTER_NAME=Watson
+set CONVERSATION_SERVICE=conversation-service-watson-pizzeria
+set CONFIG_MAP=watson-pizzeria-config
+set POD_NAME=watson-pizzeria-pod.yml
+set KUBE_SERVICE=pizza-bot
+set CONTAINER_ENV_VARIABLE=service_watson_conversation
 ```
 
 # Steps
@@ -20,12 +37,32 @@ $ export CONTAINER_ENV_VARIABLE=service_watson_conversation
 
 ```
 $ export CLUSTER_NAME=<your_cluster_name>
+
+Windows:
+set CLUSTER_NAME=<your_cluster_name>
 ```
 
+* Add the container package to the IBM Cloud command line interface:
+
+```
+ibmcloud plugin install container-service
+```
+* Target your resource group and region
+```
+ibmcloud target -r <us-south> -g <my-resource-group>
+```
+* Add the container package to the IBM Cloud command line interface:
+
+```
+ibmcloud plugin install container-service
+```
 * Set the Kubernetes environment to work with your cluster:
 
 ```
-bx cs cluster-config $CLUSTER_NAME
+ibmcloud ks cluster-config $CLUSTER_NAME
+
+Windows:
+ibmcloud ks cluster-config %ibmCLUSTER_NAME%
 ```
 
 The output of this command will contain a KUBECONFIG environment variable that must be exported in order to set the context. Copy and paste the output in the terminal window. An example is:
@@ -38,25 +75,32 @@ export KUBECONFIG=/home/rak/.bluemix/plugins/container-service/clusters/Kate/kub
 
 Either follow the instructions to [Create a Conversation Service](https://console.ng.bluemix.net/catalog/services/conversation) or perform the following from the CLI.
 
-* Create the Watson Conversation service:
+* Create the Watson Conversation service:   
+
+---> already created in first part of lab, skip and use the name of the service your created.
+
+---> DO NOT use spaces in your service name
+---> DO NOT use spaces in your service name
+---> DO NOT use spaces in your service name
 
 ```
-$ bx service create conversation free $CONVERSATION_SERVICE
+$ ibmcloud service create conversation free $CONVERSATION_SERVICE
 ```
 
 * Verify that the service instance is created:
 
 ```
-$ bx service list
+$ ibmcloud resource service_instances
 ```
 
 * Obtain the ID of your cluster:
 
 ```
-$ bx cs clusters
+$ ibmcloud ks clusters
 ```
 
-* Bind the service instance to your cluster:
+* Bind the service instance to your cluster:  
+Copy/paste the <cluser-ID> from the above step.
 
 ```
 $ bx cs cluster-service-bind <cluster-ID> default $CONVERSATION_SERVICE
@@ -89,14 +133,20 @@ $ export WORKSPACE_ID=<WORKSPACE_ID>
 * Create a Kubernetes Configuration Map:
 
 ```
-$ kubectl create configmap $CONFIG_MAP \
-    --from-literal=workspace_id=$WORKSPACE_ID
+
+$ kubectl create configmap $CONFIG_MAP --from-literal=workspace_id=$WORKSPACE_ID
+
+Windows:
+$ kubectl create configmap %CONFIG_MAP% --from-literal=workspace_id=$WORKSPACE_ID
 ```
 
 * Verify that the configuration is set:
 
 ```
 $ kubectl get configmaps $CONFIG_MAP -o yaml
+
+Windows:
+kubectl get configmaps %CONFIG_MAP% -o yaml
 ```
 
 ## Deploy the Pod
@@ -104,13 +154,31 @@ $ kubectl get configmaps $CONFIG_MAP -o yaml
 * Deploy:
 
 ```
-$ kubectl create -f $POD_NAME
-```
+$ kubectl apply -f $POD_NAME
 
+Windows:
+kubectl apply -f %POD_NAME%
+```
+* Verify configuration was deployed:
+
+```
+$ kubectrl get pods
+```
+* Troubleshoot by viewing pod logs:
+
+```
+$ kubectl logs $POD_NAME
+
+Windows:
+kubectl logs %POD_NAME%
+```
 * Identify the **Public IP** address of your worker:
 
 ```
-$ bx cs workers $CLUSTER_NAME
+$ ibmcloud ks workers $CLUSTER_NAME
+
+Windows:
+$ ibmcloud ks workers %CLUSTER_NAME%
 ```
 
 * Identify the external port your pod is listening on:
@@ -178,4 +246,3 @@ To delete all your services and deployments, run:
 $ kubectl delete deployment <deployment_name>
 $ kubectl delete service $KUBE_SERVICE
 ```
-
